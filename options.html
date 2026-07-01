@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tab Rot — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header>
+        <div class="logo">
+          <span class="dot s0"></span><span class="dot s1"></span
+          ><span class="dot s2"></span><span class="dot s3"></span
+          ><span class="dot s4"></span>
+        </div>
+        <h1>Tab Rot</h1>
+        <p class="sub">
+          Tabs you forget gently fade. Tabs you return to bloom back.
+        </p>
+      </header>
+
+      <section class="card">
+        <h2>Decay timing</h2>
+        <label>
+          <span>Start decaying after</span>
+          <select id="threshold">
+            <option value="5">5 minutes (demo)</option>
+            <option value="60">1 hour</option>
+            <option value="360">6 hours</option>
+            <option value="1440" selected>1 day</option>
+            <option value="4320">3 days</option>
+            <option value="10080">1 week</option>
+          </select>
+        </label>
+        <label>
+          <span>Decay speed</span>
+          <select id="speed">
+            <option value="0.5">Faster (½×)</option>
+            <option value="1" selected>Normal</option>
+            <option value="2">Slower (2×)</option>
+            <option value="4">Much slower (4×)</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>Whitelist <span class="hint">never decays</span></h2>
+        <textarea
+          id="whitelist"
+          rows="4"
+          placeholder="One domain per line, e.g. github.com"
+        ></textarea>
+      </section>
+
+      <section class="card">
+        <h2>Blacklist <span class="hint">ignored entirely</span></h2>
+        <textarea
+          id="blacklist"
+          rows="4"
+          placeholder="One domain per line, e.g. mail.google.com"
+        ></textarea>
+      </section>
+
+      <section class="actions">
+        <button id="save" class="primary">Save settings</button>
+        <button id="reset">Reset all tabs to fresh</button>
+        <span id="status" class="status"></span>
+      </section>
+
+      <footer>
+        <p>
+          Decay tracks per-tab while Chrome is running. Closing Chrome resets
+          all timers — a fresh start every morning.
+        </p>
+      </footer>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
