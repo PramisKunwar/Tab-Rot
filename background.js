@@ -1,29 +1,21 @@
-// Tab Rot — background service worker
-// Tracks per-tab inactivity and persists decay state across browser restarts.
-// State is keyed by URL (since tab IDs are not stable across restarts).
-
 const DEFAULT_SETTINGS = {
-  // Minutes until decay BEGINS (Stage 1). Subsequent stages each add 1x this value.
-  thresholdMinutes: 1440, // 1 day
-  // Multiplier on the spacing between stages (1 = even, <1 = faster, >1 = slower)
+  thresholdMinutes: 1440, 
   speed: 1,
   whitelist: [],
   blacklist: [],
 };
 
-const STATE_KEY = "tabRotState"; // { [url]: { lastActive: number, stage: number } }
+const STATE_KEY = "tabRotState"; 
 const SETTINGS_KEY = "settings";
 
-// In-memory mirrors of chrome.storage.local (hydrated on SW wake).
-let urlState = {}; // url -> { lastActive, stage }
-const tabUrl = new Map(); // tabId -> current url (live mapping)
+let urlState = {}; 
+const tabUrl = new Map(); 
 
 let hydrated = false;
 async function hydrate() {
   if (hydrated) return;
   const { [STATE_KEY]: s } = await chrome.storage.local.get(STATE_KEY);
   urlState = s && typeof s === "object" ? s : {};
-  // Rebuild live tab -> url mapping
   const tabs = await chrome.tabs.query({});
   for (const t of tabs) {
     if (t.id != null && t.url) tabUrl.set(t.id, t.url);
@@ -80,7 +72,7 @@ async function sendStage(tabId, stage, opts = {}) {
       stage,
       heal: !!opts.heal,
     });
-  } catch (_) { /* no content script on chrome:// etc. */ }
+  } catch (_) 
 }
 
 async function evaluateTab(tabId, { heal = false } = {}) {
@@ -123,21 +115,17 @@ function touchUrl(url) {
   schedulePersist();
 }
 
-// ---------- Lifecycle ----------
-
 chrome.runtime.onInstalled.addListener(async () => {
   const s = await loadSettings();
   await saveSettings(s);
   chrome.alarms.create("tabRotTick", { periodInMinutes: 1 });
   await hydrate();
-  // Seed any brand-new URLs we've never seen
   for (const url of tabUrl.values()) {
     if (isTrackable(url) && !urlState[url]) touchUrl(url);
   }
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  // Decay state PERSISTS across restarts. Just re-arm the alarm + hydrate.
   chrome.alarms.create("tabRotTick", { periodInMinutes: 1 });
   await hydrate();
   await evaluateAll();
@@ -190,5 +178,47 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     await evaluateTab(tab.id, { heal: true });
   }
 });
-// Initial hydrate on SW wake
+
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  (async () => {
+    await hydrate();
+    if (msg?.type === "TAB_ROT_HELLO" && sender.tab?.id != null) {
+      const tabId = sender.tab.id;
+      if (sender.tab.url) tabUrl.set(tabId, sender.tab.url);
+      await evaluateTab(tabId);
+      sendResponse({ ok: true });
+      return;
+    }
+    if (msg?.type === "TAB_ROT_RESET_ALL") {
+      const now = Date.now();
+      for (const url of Object.keys(urlState)) {
+        urlState[url] = { lastActive: now, stage: 0 };
+      }
+      schedulePersist();
+      for (const tabId of tabUrl.keys()) sendStage(tabId, 0, { heal: true });
+      sendResponse({ ok: true });
+      return;
+    }
+    if (msg?.type === "TAB_ROT_GET_SETTINGS") {
+      sendResponse(await loadSettings());
+      return;
+    }
+    if (msg?.type === "TAB_ROT_SAVE_SETTINGS") {
+      await saveSettings({ ...DEFAULT_SETTINGS, ...msg.settings });
+      await evaluateAll();
+      sendResponse({ ok: true });
+      return;
+    }
+    if (msg?.type === "TAB_ROT_CLEAR_HISTORY") {
+      urlState = {};
+      await chrome.storage.local.set({ [STATE_KEY]: urlState });
+      for (const tabId of tabUrl.keys()) sendStage(tabId, 0, { heal: true });
+      sendResponse({ ok: true });
+      return;
+    }
+  })();
+  return true;
+});
+
 hydrate();
