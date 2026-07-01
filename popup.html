@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        width: 220px;
+        font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter,
+          sans-serif;
+        color: #3a2f37;
+        background: #fdf7f5;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      p {
+        margin: 0 0 12px;
+        color: #7a6e76;
+      }
+      .row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+      }
+      button {
+        width: 100%;
+        font: inherit;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: white;
+        cursor: pointer;
+        margin-bottom: 6px;
+      }
+      button.primary {
+        background: #3a2f37;
+        color: #fdf7f5;
+        border-color: #3a2f37;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tab Rot</h1>
+    <div class="row">
+      <div class="dot" style="background: #ffd6df"></div>
+      <div class="dot" style="background: #ffcdb2"></div>
+      <div class="dot" style="background: #d69ca4"></div>
+      <div class="dot" style="background: #b5a5c7"></div>
+      <div class="dot" style="background: #aaa8ac"></div>
+    </div>
+    <p>Tabs you forget gently fade. Tabs you return to bloom back.</p>
+    <button id="reset" class="primary">Restore all tabs</button>
+    <button id="opts">Settings</button>
+    <script src="popup.js"></script>
+  </body>
+</html>
